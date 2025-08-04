@@ -7,7 +7,7 @@ dotenv.config();
 const connectionString = process.env.MYSQL_URL;
 export const pool = mysql.createPool(connectionString);
 
-export async function initSchema(config, sqlFilePath) {
+export async function initSchema(sqlFilePath) {
     // ignore config here, use our single URL
     const connection = await mysql.createConnection(connectionString);
     const sql = fs.readFileSync(sqlFilePath, "utf8");
