@@ -1,6 +1,6 @@
 // GameCapsuleList.js
 import React, { useEffect, useState } from 'react';
-import GameCapsule from './GameCapsule';
+import GameCapsule from "./ui/GameCapsule";
 
 export default function GameCapsuleList() {
     const [games, setGames] = useState([]);
