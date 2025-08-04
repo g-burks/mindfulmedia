@@ -18,9 +18,9 @@ const connectionSource = process.env.MYSQL_URL
 
 export const pool = mysql.createPool(connectionSource);
 
-export async function initSchema(connection, sqlFilePath) {
+export async function initSchema(connectionSource, sqlFilePath) {
     // `connection` may be a URL string or config object.
-    const conn = await mysql.createConnection(connection);
+    const conn = await mysql.createConnection(connectionSource);
     const sql  = fs.readFileSync(sqlFilePath, "utf8");
     await conn.query(sql);
     await conn.end();
