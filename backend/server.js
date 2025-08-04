@@ -11,6 +11,7 @@ import { Strategy as SteamStrategy } from "passport-steam";
 import { getOwnedGames, getGameData, getPlayerSummary } from "./SteamAPI.js";
 import {
   initSchema,
+  pool,
   ensureUser,
   upsertGame,
   linkUserGame,
@@ -24,11 +25,6 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const {
-  DB_HOST   = process.env.MYSQLHOST,
-  DB_PORT   = process.env.MYSQLPORT,
-  DB_USER   = process.env.MYSQLUSER,
-  DB_PASS   = process.env.MYSQLPASSWORD,
-  DB_NAME   = process.env.MYSQLDATABASE,
   STEAM_API_KEY,
   PORT = 5000,
 } = process.env;
@@ -37,17 +33,6 @@ const {
 async function startServer() {
   // 1) Ensure schema (CREATE/ALTER) is applied
   await initSchema(path.resolve(__dirname, "init.sql"));
-
-  // 2) Create MySQL pool
-  const pool = mysql.createPool({
-    host: DB_HOST,
-    port: Number(DB_PORT),
-    user: DB_USER,
-    password: DB_PASS,
-    database: DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-  });
 
   // 4) Verify connection
   try {
