@@ -1,38 +1,38 @@
 // database.js
-import fs from "fs";
-import mysql from "mysql2/promise";
+import mysql  from "mysql2/promise";
+import fs     from "fs";
 import dotenv from "dotenv";
 dotenv.config();
 
-const {
-  DB_HOST,
-  DB_PORT,
-  DB_USER,
-  DB_PASS,
-  DB_NAME,
-} = process.env;
-
+// Use the full URL in prod, fall back to old DB_* in dev
 const pool = process.env.MYSQL_URL
     ? mysql.createPool(process.env.MYSQL_URL)
     : mysql.createPool({
-      host: DB_HOST,
-      port: Number(DB_PORT),
-      user: DB_USER,
-      password: DB_PASS,
-      database: DB_NAME,
-      waitForConnections: true,
-      connectionLimit: 10,
+        host:     process.env.DB_HOST,
+        port:     Number(process.env.DB_PORT),
+        user:     process.env.DB_USER,
+        password: process.env.DB_PASS,
+        database: process.env.DB_NAME,
+        waitForConnections: true,
+        connectionLimit: 10,
     });
 
 export { pool };
 
-/* Run your init.sql (with CREATE/ALTER statements) once at startup. */
-export async function initSchema(config, sqlFilePath) {
-  // const connection = await mysql.createConnection(config);
-  const sql = fs.readFileSync(sqlFilePath, "utf8");
-  const conn = await pool.getConnection();
-  await conn.query(sql);
-  conn.release();
+export async function initSchema(sqlFilePath) {
+    const conn = process.env.MYSQL_URL
+        ? await mysql.createConnection(process.env.MYSQL_URL)
+        : await mysql.createConnection({
+            host:     process.env.DB_HOST,
+            port:     Number(process.env.DB_PORT),
+            user:     process.env.DB_USER,
+            password: process.env.DB_PASS,
+            database: process.env.DB_NAME,
+        });
+
+    const sql = fs.readFileSync(sqlFilePath, "utf8");
+    await conn.query(sql);
+    await conn.end();
 }
 
 /* Ensure a user row exists. */
