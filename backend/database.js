@@ -1,31 +1,14 @@
 // database.js
 import fs from "fs";
 import mysql from "mysql2/promise";
-import dotenv from "dotenv";
-dotenv.config();
 
-const {
-  DB_HOST,
-  DB_PORT,
-  DB_USER,
-  DB_PASS,
-  DB_NAME,
-} = process.env;
+const url = process.env.MYSQL_URL;
 
-
-export const pool = mysql.createPool({
-  host: DB_HOST,
-  port: Number(DB_PORT),
-  user: DB_USER,
-  password: DB_PASS,
-  database: DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-});
+export const pool = mysql.createPool(url);
 
 /* Run your init.sql (with CREATE/ALTER statements) once at startup. */
-export async function initSchema(config, sqlFilePath) {
-  const connection = await mysql.createConnection(config);
+export async function initSchema(sqlFilePath) {
+  const connection = await mysql.createConnection(url);
   const sql = fs.readFileSync(sqlFilePath, "utf8");
   await connection.query(sql);
   await connection.end();

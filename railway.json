@@ -2,7 +2,7 @@
   "build": {
     "baseDir": "backend",
     "installCommand": "npm install",
-    "buildCommand": "\"echo \\\"skip build step\\\"\"",
+    "buildCommand": "echo \"skip build step\"",
     "startCommand": "node server.js"
   }
 }
