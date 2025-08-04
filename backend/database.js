@@ -1,18 +1,19 @@
 // database.js
 import fs from "fs";
 import mysql from "mysql2/promise";
+import dotenv from "dotenv";
+dotenv.config();
 
-const url = process.env.MYSQL_URL;
+const connectionString = process.env.MYSQL_URL;
+export const pool = mysql.createPool(connectionString);
 
-export const pool = mysql.createPool(url);
-
-/* Run your init.sql (with CREATE/ALTER statements) once at startup. */
-export async function initSchema(sqlFilePath) {
-  const connection = await mysql.createConnection(url);
-  const sql = fs.readFileSync(sqlFilePath, "utf8");
-  await connection.query(sql);
-  await connection.end();
-}
+export async function initSchema(config, sqlFilePath) {
+    // ignore config here, use our single URL
+    const connection = await mysql.createConnection(connectionString);
+    const sql = fs.readFileSync(sqlFilePath, "utf8");
+    await connection.query(sql);
+    await connection.end();
+    }
 
 /* Ensure a user row exists. */
 export async function ensureUser(conn, steamID, displayName) {

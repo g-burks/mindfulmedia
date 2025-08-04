@@ -1,5 +1,3 @@
-import { pool } from './database.js';
-
 export const requireSteamID = (req, res, next) => {
 
     const steam_id = req.session?.passport?.user?.id;

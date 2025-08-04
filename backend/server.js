@@ -36,16 +36,7 @@ const {
 
 async function startServer() {
   // 1) Ensure schema (CREATE/ALTER) is applied
-  await initSchema(
-      {
-        host: DB_HOST,
-        port: Number(DB_PORT),
-        user: DB_USER,
-        password: DB_PASS,
-        multipleStatements: true,
-      },
-      path.resolve(__dirname, "init.sql")
-  );
+  await initSchema(path.resolve(__dirname, "init.sql"));
 
   // 2) Create MySQL pool
   const pool = mysql.createPool({
