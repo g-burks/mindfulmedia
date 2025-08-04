@@ -6,7 +6,6 @@ import express from "express";
 import cors from "cors";
 import session from "express-session";
 import passport from "passport";
-import mysql from "mysql2/promise";
 import { Strategy as SteamStrategy } from "passport-steam";
 import { getOwnedGames, getGameData, getPlayerSummary } from "./SteamAPI.js";
 import {
@@ -16,6 +15,8 @@ import {
   linkUserGame,
   getUserGames,
   upsertUserProfile,
+  pool,
+  connectionSource,
 } from "./database.js";
 import { requireSteamID, requireAdmin } from './AuthMiddleware.js';
 import path   from "path";
@@ -25,11 +26,6 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: resolve(__dirname, ".env") });
 
 const {
-  DB_HOST,
-  DB_PORT,
-  DB_USER,
-  DB_PASS,
-  DB_NAME,
   STEAM_API_KEY,
   PORT = 5000,
 } = process.env;
@@ -37,29 +33,9 @@ const {
 
 async function startServer() {
   // 1) Ensure schema (CREATE/ALTER) is applied
-  await initSchema(
-      {
-        host: DB_HOST,
-        port: Number(DB_PORT),
-        user: DB_USER,
-        password: DB_PASS,
-        multipleStatements: true,
-      },
-      resolve(__dirname, 'init.sql')
-  );
+  await initSchema(connectionSource, resolve(__dirname, 'init.sql'));
 
-  // 2) Create MySQL pool
-  const pool = mysql.createPool({
-    host: DB_HOST,
-    port: Number(DB_PORT),
-    user: DB_USER,
-    password: DB_PASS,
-    database: DB_NAME,
-    waitForConnections: true,
-    connectionLimit: 10,
-  });
-
-  // 4) Verify connection
+  // 2) Verify connection
   try {
     const conn = await pool.getConnection();
     await conn.ping();
@@ -70,7 +46,7 @@ async function startServer() {
     process.exit(1);
   }
 
-  // 5) Express setup
+  // 3) Express setup
   const BASE_URL = process.env.PUBLIC_URL;
   const app = express();
 

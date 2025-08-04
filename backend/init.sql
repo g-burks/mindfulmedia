@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS mindfulmedia;
-USE mindfulmedia;
-
 CREATE TABLE IF NOT EXISTS users (
   steam_id      VARCHAR(50) PRIMARY KEY,
   display_name  VARCHAR(255),

@@ -4,7 +4,7 @@ import fs     from "fs";
 import dotenv from "dotenv";
 dotenv.config();
 
-const connectionSource = process.env.MYSQL_URL
+export const connectionSource = process.env.MYSQL_URL
     ? process.env.MYSQL_URL
     : {
         host:     process.env.DB_HOST,
@@ -18,11 +18,17 @@ const connectionSource = process.env.MYSQL_URL
 
 export const pool = mysql.createPool(connectionSource);
 
-export async function initSchema(connectionSource, sqlFilePath) {
+export async function initSchema(connection, sqlFilePath) {
     // `connection` may be a URL string or config object.
-    const conn = await mysql.createConnection(connectionSource);
-    const sql  = fs.readFileSync(sqlFilePath, "utf8");
-    await conn.query(sql);
+    const conn = await mysql.createConnection(connection);
+    const raw  = fs.readFileSync(sqlFilePath, "utf8");
+    const statements = raw
+        .split(";")
+        .map(s => s.trim())
+        .filter(s => s.length);
+    for (const stmt of statements) {
+        await conn.query(stmt);
+    }
     await conn.end();
 }
 
