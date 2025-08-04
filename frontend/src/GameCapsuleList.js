@@ -1,92 +1,42 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import axios from "axios";
-import GameCapsule from "./ui/GameCapsule"; //formatting for games data
-import apiRoutes from "./apiRoutes";
+// GameCapsuleList.js
+import React, { useEffect, useState } from 'react';
+import GameCapsule from './GameCapsule';
 
-const GameCapsuleList = ({ searchQuery }) => {
-  const [games, setGames] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export default function GameCapsuleList() {
+    const [games, setGames] = useState([]);
+    const apiUrl = process.env.REACT_APP_API_BASE_URL;
 
-  // new state for persona_name
-  const [personaName, setPersonaName] = useState("");
+    useEffect(() => {
+        async function fetchGames() {
+            try {
+                const res = await fetch(`${apiUrl}/games`);
+                const data = await res.json();
+                // If the API returns { games: [...] }, unwrap it, otherwise assume the array itself
+                const list = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.games)
+                        ? data.games
+                        : [];
+                setGames(list);
+            } catch (err) {
+                console.error('Failed to fetch games:', err);
+                setGames([]);
+            }
+        }
+        fetchGames();
+    }, [apiUrl]);
 
-  // Fetch persona_name from your backend
-  useEffect(() => {
-    axios
-      .get(apiRoutes.getPlayerSummary, { withCredentials: true })
-      .then(({ data }) => {
-        // backend sends `personaName`, not `persona_name`
-        setPersonaName(data.personaName || "Missing Name");
-        console.log("Fetched persona name:", data.personaName);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch persona name:", err);
-        setPersonaName("(unknown user)");
-      });
-  }, []);
+    if (!Array.isArray(games)) {
+        console.warn('Expected games array but got:', games);
+        return null;
+    }
 
-  // Fetch owned games
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-
-    axios
-      .get(apiRoutes.getGames, {withCredentials: true})
-      .then((res) => {
-        setGames(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch games", err);
-        setError("Failed to fetch games");
-        setLoading(false);
-      });
-  }, []);
-
-  // filter by name if there's a query
-  const filteredGames = searchQuery
-    ? games.filter((game) =>
-        game.title.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : games;
-
-  if (loading) return <p>Loading games...</p>;
-  if (error) return <p>{error}</p>;
-  if (filteredGames.length === 0) {
     return (
-      <p>
-        No games found
-        {searchQuery
-          ? ` matching “${searchQuery}”`
-          : ` for your account`}
-      </p>
+        <div className="game-capsule-list">
+            {games.length === 0 && <p>No games found.</p>}
+            {games.map(game => (
+                <GameCapsule key={game.appid} game={game} />
+            ))}
+        </div>
     );
-  }
-
-  return (
-    <>
-      <h1 style={{textAlign: "center"}}>
-          Game Collection
-          </h1>
-      <div className="games-container">
-        {filteredGames.map((game) => (
-          <Link
-            key={game.appid}
-            to={`/GamePage/${game.appid}`}
-            style={{ textDecoration: "none" }}
-          >
-            <GameCapsule
-              title={game.title}
-              imageUrl={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appid}/library_600x900.jpg`}
-              category="Owned Game"
-            />
-          </Link>
-        ))}
-      </div>
-    </>
-  );
-};
-
-export default GameCapsuleList;
+}

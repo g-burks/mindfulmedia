@@ -1,15 +1,52 @@
-// database.js
 import fs from "fs";
 import mysql from "mysql2/promise";
 import dotenv from "dotenv";
+import { URL } from "url";
+
 dotenv.config();
 
+// Determine connection settings: URL-based in production, or env vars in development
 const connectionString = process.env.MYSQL_URL;
-export const pool = mysql.createPool(connectionString);
+let poolConfig;
 
+if (connectionString && connectionString.startsWith("mysql://")) {
+    // URL-based configuration (Railway)
+    const dbUrl = new URL(connectionString);
+    poolConfig = {
+        host: dbUrl.hostname,
+        port: Number(dbUrl.port),
+        user: dbUrl.username,
+        password: dbUrl.password,
+        database: dbUrl.pathname.replace(/^\//, ""),
+        waitForConnections: true,
+        connectionLimit: 10,
+    };
+} else {
+    // Fallback for local .env with individual DB_* vars
+    const {
+        DB_HOST = process.env.DB_HOST,
+        DB_PORT = process.env.DB_PORT,
+        DB_USER = process.env.DB_USER,
+        DB_PASS = process.env.DB_PASS,
+        DB_NAME = process.env.DB_NAME,
+    } = process.env;
+    poolConfig = {
+        host: DB_HOST,
+        port: Number(DB_PORT),
+        user: DB_USER,
+        password: DB_PASS,
+        database: DB_NAME,
+        waitForConnections: true,
+        connectionLimit: 10,
+    };
+}
+
+export const pool = mysql.createPool(poolConfig);
+
+// Initialize schema by running init.sql once at startup
 export async function initSchema(sqlFilePath) {
-    // ignore config here, use our single URL
-    const connection = await mysql.createConnection(connectionString);
+    // Create a new connection for schema setup
+    const connection = await mysql.createConnection(poolConfig);
     const sql = fs.readFileSync(sqlFilePath, "utf8");
     const statements = sql
         .split(';')
@@ -19,7 +56,6 @@ export async function initSchema(sqlFilePath) {
     for (const stmt of statements) {
         await connection.query(stmt);
     }
-
     await connection.end();
 }
 
