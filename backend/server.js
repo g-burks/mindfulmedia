@@ -1,5 +1,5 @@
 // server.js
-import { dirname, resolve } from "path";
+import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import express from "express";
@@ -18,18 +18,17 @@ import {
   upsertUserProfile,
 } from "./database.js";
 import { requireSteamID, requireAdmin } from './AuthMiddleware.js';
-import path from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-dotenv.config({ path: resolve(__dirname, ".env") });
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const {
-  DB_HOST,
-  DB_PORT,
-  DB_USER,
-  DB_PASS,
-  DB_NAME,
+  DB_HOST   = process.env.MYSQLHOST,
+  DB_PORT   = process.env.MYSQLPORT,
+  DB_USER   = process.env.MYSQLUSER,
+  DB_PASS   = process.env.MYSQLPASSWORD,
+  DB_NAME   = process.env.MYSQLDATABASE,
   STEAM_API_KEY,
   PORT = 5000,
 } = process.env;
@@ -45,7 +44,7 @@ async function startServer() {
         password: DB_PASS,
         multipleStatements: true,
       },
-      resolve(__dirname, "init.sql")
+      path.resolve(__dirname, "init.sql")
   );
 
   // 2) Create MySQL pool
@@ -109,9 +108,9 @@ async function startServer() {
         resave: false,
         saveUninitialized: false,
         cookie: {
-          secure: process.env.NODE_ENV === 'production',
+          secure: true,
           httpOnly: true,
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+          sameSite: 'none',
         }
       })
   );
@@ -189,6 +188,8 @@ async function startServer() {
 
     try {
       const conn = await pool.getConnection();
+      console.log('Session:', req.session);
+      console.log('Passport:', req.session.passport);
       const [[userRow]] = await conn.query(
           `SELECT role
            FROM users
