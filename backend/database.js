@@ -12,23 +12,27 @@ const {
   DB_NAME,
 } = process.env;
 
+const pool = process.env.MYSQL_URL
+    ? mysql.createPool(process.env.MYSQL_URL)
+    : mysql.createPool({
+      host: DB_HOST,
+      port: Number(DB_PORT),
+      user: DB_USER,
+      password: DB_PASS,
+      database: DB_NAME,
+      waitForConnections: true,
+      connectionLimit: 10,
+    });
 
-export const pool = mysql.createPool({
-  host: DB_HOST,
-  port: Number(DB_PORT),
-  user: DB_USER,
-  password: DB_PASS,
-  database: DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-});
+export { pool };
 
 /* Run your init.sql (with CREATE/ALTER statements) once at startup. */
 export async function initSchema(config, sqlFilePath) {
-  const connection = await mysql.createConnection(config);
+  // const connection = await mysql.createConnection(config);
   const sql = fs.readFileSync(sqlFilePath, "utf8");
-  await connection.query(sql);
-  await connection.end();
+  const conn = await pool.getConnection();
+  await conn.query(sql);
+  conn.release();
 }
 
 /* Ensure a user row exists. */
