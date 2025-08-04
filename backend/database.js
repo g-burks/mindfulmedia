@@ -11,9 +11,17 @@ export async function initSchema(sqlFilePath) {
     // ignore config here, use our single URL
     const connection = await mysql.createConnection(connectionString);
     const sql = fs.readFileSync(sqlFilePath, "utf8");
-    await connection.query(sql);
-    await connection.end();
+    const statements = sql
+        .split(';')
+        .map(stmt => stmt.trim())
+        .filter(stmt => stmt.length && !stmt.startsWith('#'));
+
+    for (const stmt of statements) {
+        await connection.query(stmt);
     }
+
+    await connection.end();
+}
 
 /* Ensure a user row exists. */
 export async function ensureUser(conn, steamID, displayName) {
