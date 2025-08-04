@@ -5,12 +5,12 @@ import { URL } from "url";
 
 dotenv.config();
 
-// Determine connection settings: URL-based in production, or env vars in development
+// Build pool config: prefer MYSQL_URL in production, else fallback to DB_* vars in .env
 const connectionString = process.env.MYSQL_URL;
 let poolConfig;
 
 if (connectionString && connectionString.startsWith("mysql://")) {
-    // URL-based configuration (Railway)
+    // Production: parse Railway's single URL
     const dbUrl = new URL(connectionString);
     poolConfig = {
         host: dbUrl.hostname,
@@ -22,14 +22,11 @@ if (connectionString && connectionString.startsWith("mysql://")) {
         connectionLimit: 10,
     };
 } else {
-    // Fallback for local .env with individual DB_* vars
-    const {
-        DB_HOST = process.env.DB_HOST,
-        DB_PORT = process.env.DB_PORT,
-        DB_USER = process.env.DB_USER,
-        DB_PASS = process.env.DB_PASS,
-        DB_NAME = process.env.DB_NAME,
-    } = process.env;
+    // Development fallback: read individual DB_* vars
+    const { DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME } = process.env;
+    if (!DB_USER || !DB_PASS) {
+        throw new Error("Missing local DB_USER/DB_PASS in .env");
+    }
     poolConfig = {
         host: DB_HOST,
         port: Number(DB_PORT),
@@ -41,11 +38,14 @@ if (connectionString && connectionString.startsWith("mysql://")) {
     };
 }
 
+// Export a connection pool
 export const pool = mysql.createPool(poolConfig);
 
-// Initialize schema by running init.sql once at startup
+/**
+ * Run init.sql statements on startup to ensure schema exists.
+ * Splits on ';', trims whitespace, and skips comments (#).
+ */
 export async function initSchema(sqlFilePath) {
-    // Create a new connection for schema setup
     const connection = await mysql.createConnection(poolConfig);
     const sql = fs.readFileSync(sqlFilePath, "utf8");
     const statements = sql
@@ -56,6 +56,7 @@ export async function initSchema(sqlFilePath) {
     for (const stmt of statements) {
         await connection.query(stmt);
     }
+
     await connection.end();
 }
 
