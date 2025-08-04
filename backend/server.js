@@ -1,5 +1,5 @@
 // server.js
-import { dirname, resolve } from "path";
+import { dirname, resolve, path } from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import express from "express";
@@ -18,7 +18,6 @@ import {
   upsertUserProfile,
 } from "./database.js";
 import { requireSteamID, requireAdmin } from './AuthMiddleware.js';
-import path from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,7 +44,7 @@ async function startServer() {
         password: DB_PASS,
         multipleStatements: true,
       },
-      resolve(__dirname, "init.sql")
+      resolve(__dirname, 'init.sql')
   );
 
   // 2) Create MySQL pool

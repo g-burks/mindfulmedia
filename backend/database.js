@@ -1,13 +1,13 @@
 // database.js
 import mysql  from "mysql2/promise";
 import fs     from "fs";
+import path   from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Use the full URL in prod, fall back to old DB_* in dev
-const pool = process.env.MYSQL_URL
-    ? mysql.createPool(process.env.MYSQL_URL)
-    : mysql.createPool({
+const connectionSource = process.env.MYSQL_URL
+    ? process.env.MYSQL_URL
+    : {
         host:     process.env.DB_HOST,
         port:     Number(process.env.DB_PORT),
         user:     process.env.DB_USER,
@@ -15,22 +15,14 @@ const pool = process.env.MYSQL_URL
         database: process.env.DB_NAME,
         waitForConnections: true,
         connectionLimit: 10,
-    });
+    };
 
-export { pool };
+export const pool = mysql.createPool(connectionSource);
 
-export async function initSchema(sqlFilePath) {
-    const conn = process.env.MYSQL_URL
-        ? await mysql.createConnection(process.env.MYSQL_URL)
-        : await mysql.createConnection({
-            host:     process.env.DB_HOST,
-            port:     Number(process.env.DB_PORT),
-            user:     process.env.DB_USER,
-            password: process.env.DB_PASS,
-            database: process.env.DB_NAME,
-        });
-
-    const sql = fs.readFileSync(sqlFilePath, "utf8");
+export async function initSchema(connection, sqlFilePath) {
+    // `connection` may be a URL string or config object.
+    const conn = await mysql.createConnection(connection);
+    const sql  = fs.readFileSync(sqlFilePath, "utf8");
     await conn.query(sql);
     await conn.end();
 }
