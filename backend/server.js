@@ -58,8 +58,6 @@ async function startServer() {
   app.set('trust proxy', 1);
 
   const allowedOrigins = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
     'https://mindfulmedia.vercel.app',
     'https://mindfulmedia-umber.vercel.app',
     'https://mindfulmedia-dm83.vercel.app',
@@ -67,10 +65,9 @@ async function startServer() {
     'https://mindfulmedia-dm83-od3hzia0e-brody-michaels-projects.vercel.app',
     'https://mindfulmedia-dm83-brody-michaels-projects.vercel.app',
     /^https:\/\/mindfulmedia-[^.]+\.vercel\.app$/,
-    /^https:\/\/.*\.loca\.lt$/
   ];
   app.use(cors({
-    function (origin, callback) {
+    origin: function (origin, callback) {
       console.log("CORS CHECK:", origin); // log every request
       if (!origin) return callback(null, true); // allow server-to-server or curl requests
       const isAllowed = allowedOrigins.some(o =>
