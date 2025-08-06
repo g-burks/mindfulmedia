@@ -31,7 +31,6 @@ if (process.env.NODE_ENV !== "production") {
 const {
   STEAM_API_KEY,
   PORT = 5000,
-  SESSION_COOKIE_DOMAIN,
 } = process.env;
 
 
