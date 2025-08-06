@@ -1,11 +1,23 @@
 import { pool } from './database.js';
 
+//Skip auth for items in admin/public
+const PUBLIC_FOLDER = ['/backend/admin/public/'];
+
 export const requireSteamID = (req, res, next) => {
+
+    // Bypass any “public” URL in admin/public
+    const url = req.path;
+    if (PUBLIC_FOLDER.some(prefix => url.startsWith(prefix))) {
+        return next();
+    }
 
     const steam_id = req.session?.passport?.user?.id;
     if (!steam_id) {
-        return;
+        return res
+        .status(401)
+        .json({error: 'No authenticated user ID'});
     }
+
     req.steam_id = steam_id;
     next();
 };

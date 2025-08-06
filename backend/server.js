@@ -79,7 +79,10 @@ async function startServer() {
     },
     credentials: true, // allow cookies and credentials
   }));
-  app.use(express.json());
+  app.use(
+      '/backend/admin/public',
+      express.static(resolve(__dirname, 'public')),
+  );
   app.use(
       session({
         secret: "thisisarandoms3cr3Tstr1nG123!@#",
