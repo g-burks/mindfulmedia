@@ -50,7 +50,16 @@ async function startServer() {
 
   // 3) Express setup
   const isProd = process.env.NODE_ENV === 'production';
-  const BASE_URL = isProd ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
+  let host;
+  if (process.env.VERCEL_URL) {
+    host = process.env.VERCEL_URL;
+  } else if (process.env.BACKEND_URL) {
+    host = process.env.BACKEND_URL.replace(/(^https?:\/\/)/, '');
+  } else {
+    host = `localhost:${PORT}`;
+  }
+
+  const BASE_URL = isProd ? `https://${host}` : `http://${host}`;
   console.log("→ BASE_URL:", BASE_URL);
 
   const app = express();
