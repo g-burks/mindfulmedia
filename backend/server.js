@@ -49,17 +49,8 @@ async function startServer() {
   }
 
   // 3) Express setup
-  const isProd = process.env.NODE_ENV === 'production';
-  let host;
-  if (process.env.VERCEL_URL) {
-    host = process.env.VERCEL_URL;
-  } else if (process.env.BACKEND_URL) {
-    host = process.env.BACKEND_URL.replace(/(^https?:\/\/)/, '');
-  } else {
-    host = `localhost:${PORT}`;
-  }
-
-  const BASE_URL = isProd ? `https://${host}` : `http://${host}`;
+  const isProd = process.env.NODE_ENV === 'production'
+  const BASE_URL = isProd ? process.env.BACKEND_URL : `http://localhost:${PORT}`;
   console.log("→ BASE_URL:", BASE_URL);
 
   const app = express();
@@ -121,29 +112,9 @@ async function startServer() {
   );
 
   // --- OAuth Endpoints ---
-  app.get("/api/auth/steam/login", (req, res, next) => {
-    const proto = req.protocol;
-    const host = req.get("host");
-    const base = `${proto}://${host}`;
-
-    passport.authenticate("steam", {
-      returnURL: `${base}/api/auth/steam/return`,
-      realm: base
-    })(req, res, next);
-  });
-
-  app.get("/api/auth/steam/return", (req, res, next) => {
-    const proto = req.protocol;
-    const host = req.get("host");
-    const base = `${proto}://${host}`;
-
-    passport.authenticate("steam", {
-      returnURL: `${base}/api/auth/steam/return`,
-      realm: base,
-      failureRedirect: "/"
-    })(req, res, next);
-
-    }, (req, res, next) => {
+  app.get("/api/auth/steam/login", passport.authenticate("steam"));
+  app.get("/api/auth/steam/return", passport.authenticate("steam", {failureRedirect: "/"}),
+    (req, res, next) => {
     const steam_id = req.user?.id;
     if (!steam_id) return res.redirect("/login/error");
 
@@ -183,11 +154,9 @@ async function startServer() {
           console.error("Session save error:", err);
           return next(err);
         }
-        const proto = req.protocol;
-        const host  = req.get("host");
-        const base  = `${proto}://${host}`;
         console.log("✅ Session saved, redirecting");
-        res.redirect(base);
+        const REDIR_URL = BASE_URL;
+        res.redirect(REDIR_URL);
       });
     });
   });
