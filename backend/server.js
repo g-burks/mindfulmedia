@@ -28,6 +28,7 @@ dotenv.config({ path: resolve(__dirname, ".env") });
 const {
   STEAM_API_KEY,
   PORT = 5000,
+  SESSION_COOKIE_DOMAIN,
 } = process.env;
 
 
@@ -91,7 +92,8 @@ async function startServer() {
         cookie: {
           secure: process.env.NODE_ENV === 'production',
           httpOnly: true,
-          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+          sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+          domain: process.ENV.NODE_ENV === 'production' ? SESSION_COOKIE_DOMAIN : undefined,
         }
       })
   );
