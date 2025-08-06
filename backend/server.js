@@ -56,6 +56,7 @@ async function startServer() {
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://mindfulmedia.vercel.app',
+    'mindfulmedia-umber.vercel.app',
     'https://mindfulmedia-dm83.vercel.app',
     'https://mindfulmedia-dm83-git-cookiesurg-brody-michaels-projects.vercel.app',
     'https://mindfulmedia-dm83-od3hzia0e-brody-michaels-projects.vercel.app',
@@ -171,7 +172,7 @@ async function startServer() {
            WHERE steam_id = ?`,
           [steam_id]
       );
-      conn.release;
+      conn.release();
       res.json({
         steam_id,
         display_name: req.session.passport.user.displayName,
