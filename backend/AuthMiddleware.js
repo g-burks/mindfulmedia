@@ -1,13 +1,13 @@
 import { pool } from './database.js';
 
 //Skip auth for items in admin/public
-const PUBLIC_FOLDER = ['/backend/admin/public/'];
+const PUBLIC_PREFIXES = ['/backend/admin/public/'];
 
 export const requireSteamID = (req, res, next) => {
 
     // Bypass any “public” URL in admin/public
     const url = req.path;
-    if (PUBLIC_FOLDER.some(prefix => url.startsWith(prefix))) {
+    if (PUBLIC_PREFIXES.some(prefix => url.startsWith(prefix))) {
         return next();
     }
 
