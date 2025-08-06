@@ -121,11 +121,29 @@ async function startServer() {
   );
 
   // --- OAuth Endpoints ---
-  app.get("/api/auth/steam/login", passport.authenticate("steam"));
-  app.get(
-      "/api/auth/steam/return",
-      passport.authenticate("steam", {failureRedirect: "/"}),
-      (req, res, next) => {
+  app.get("/api/auth/steam/login", (req, res, next) => {
+    const proto = req.protocol;
+    const host = req.get("host");
+    const base = `${proto}://${host}`;
+
+    passport.authenticate("steam", {
+      returnURL: `${base}/api/auth/steam/return`,
+      realm: base
+    })(req, res, next);
+  });
+
+  app.get("/api/auth/steam/return", (req, res, next) => {
+        const proto = req.protocol;
+        const host = req.get("host");
+        const base = `${proto}://${host}`;
+
+        passport.authenticate("steam", {
+          returnURL: `${base}/api/auth/steam/return`,
+          realm: base,
+          failureRedirect: "/"
+        })(req, res, next);
+
+      }, (req, res, next) => {
         const steam_id = req.user?.id;
         if (!steam_id) return res.redirect("/login/error");
 
@@ -166,8 +184,7 @@ async function startServer() {
               return next(err);
             }
             console.log("✅ Session saved, redirecting");
-            const REDIR_URL = BASE_URL;
-            res.redirect(REDIR_URL);
+            res.redirect(base);
           });
         });
       }
