@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import session from "express-session";
+import MySQLStoreFactory from "express-mysql-session";
 import passport from "passport";
 import { Strategy as SteamStrategy } from "passport-steam";
 import { getOwnedGames, getGameData, getPlayerSummary } from "./SteamAPI.js";
@@ -57,7 +58,7 @@ async function startServer() {
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'https://mindfulmedia.vercel.app',
-    'mindfulmedia-umber.vercel.app',
+    'https://mindfulmedia-umber.vercel.app',
     'https://mindfulmedia-dm83.vercel.app',
     'https://mindfulmedia-dm83-git-cookiesurg-brody-michaels-projects.vercel.app',
     'https://mindfulmedia-dm83-od3hzia0e-brody-michaels-projects.vercel.app',
@@ -84,8 +85,11 @@ async function startServer() {
       '/backend/admin/public',
       express.static(resolve(__dirname, 'public')),
   );
+  const MySQLStore = MySQLStoreFactory(session);
+  const store = new MySQLStore({ createDatabaseTable: true }, pool);
   app.use(
       session({
+        store,
         secret: "thisisarandoms3cr3Tstr1nG123!@#",
         resave: false,
         saveUninitialized: false,
