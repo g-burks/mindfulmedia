@@ -3,24 +3,7 @@ import axios from "axios";
 import GameCapsuleList from "./GameCapsuleList";
 import apiRoutes from "./apiRoutes";
 
-export default function HomePage({ searchQuery }) {
-    const [user, setUser]     = useState(null);
-    const [checked, setChecked] = useState(false);
-
-    useEffect(() => {
-        axios
-            .get(apiRoutes.getUser, { withCredentials: true })
-            .then(res => {
-                setUser(res.data);
-            })
-            .catch(() => {
-                setUser(null);
-            })
-            .finally(() => {
-                setChecked(true);
-            });
-    }, []);
-
+export default function HomePage({ searchQuery, user, checked }) {
     // 1) still waiting on the /api/me check?
     if (!checked) {
         return <p>Loading…</p>;
