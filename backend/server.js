@@ -97,7 +97,7 @@ async function startServer() {
           secure: process.env.NODE_ENV === 'production',
           httpOnly: true,
           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          domain: process.env.NODE_ENV === 'production' ? SESSION_COOKIE_DOMAIN : undefined,
+          // domain: process.env.NODE_ENV === 'production' ? SESSION_COOKIE_DOMAIN : undefined,
         }
       })
   );
