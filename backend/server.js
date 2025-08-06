@@ -133,62 +133,65 @@ async function startServer() {
   });
 
   app.get("/api/auth/steam/return", (req, res, next) => {
-        const proto = req.protocol;
-        const host = req.get("host");
-        const base = `${proto}://${host}`;
+    const proto = req.protocol;
+    const host = req.get("host");
+    const base = `${proto}://${host}`;
 
-        passport.authenticate("steam", {
-          returnURL: `${base}/api/auth/steam/return`,
-          realm: base,
-          failureRedirect: "/"
-        })(req, res, next);
+    passport.authenticate("steam", {
+      returnURL: `${base}/api/auth/steam/return`,
+      realm: base,
+      failureRedirect: "/"
+    })(req, res, next);
 
-      }, (req, res, next) => {
-        const steam_id = req.user?.id;
-        if (!steam_id) return res.redirect("/login/error");
+    }, (req, res, next) => {
+    const proto = req.protocol;
+    const host  = req.get("host");
+    const base  = `${proto}://${host}`;
 
-        // Manually login to save session and send cookie
-        req.login(req.user, async (err) => {
-          if (err) {
-            console.error("Login error:", err);
-            return next(err);
-          }
+    const steam_id = req.user?.id;
+    if (!steam_id) return res.redirect("/login/error");
 
-          console.log("SteamID:", steam_id);
-          console.log("BEFORE SESSION LOGIN RETURN");
-          console.log("SESSION AT LOGIN RETURN:", req.session);
-          console.log("AFTER SESSION LOGIN RETURN");
-          console.log("USER AT LOGIN RETURN:", req.user);
-          console.log("SESSION PASSPORT:", req.session.passport?.user);
-
-          try {
-            const profile = await getPlayerSummary(steam_id);
-            if (profile) {
-              const conn = await pool.getConnection();
-              await conn.query(
-                  `INSERT
-                  IGNORE INTO users (steam_id, persona_name, avatar, profile_url, role)
-             VALUES (?, ?, ?, ?, ?)`,
-                  [steam_id, profile.persona_name, profile.avatar, profile.profile_url, 'user']
-              );
-              await upsertUserProfile(conn, steam_id, profile);
-              conn.release();
-            }
-          } catch (err) {
-            console.error("Could not fetch/store Steam profile:", err);
-          }
-
-          req.session.save((err) => {
-            if (err) {
-              console.error("Session save error:", err);
-              return next(err);
-            }
-            console.log("✅ Session saved, redirecting");
-            res.redirect(base);
-          });
-        });
+    // Manually login to save session and send cookie
+    req.login(req.user, async (err) => {
+      if (err) {
+        console.error("Login error:", err);
+        return next(err);
       }
-  );
+
+      console.log("SteamID:", steam_id);
+      console.log("BEFORE SESSION LOGIN RETURN");
+      console.log("SESSION AT LOGIN RETURN:", req.session);
+      console.log("AFTER SESSION LOGIN RETURN");
+      console.log("USER AT LOGIN RETURN:", req.user);
+      console.log("SESSION PASSPORT:", req.session.passport?.user);
+
+      try {
+        const profile = await getPlayerSummary(steam_id);
+        if (profile) {
+          const conn = await pool.getConnection();
+          await conn.query(
+              `INSERT
+            IGNORE INTO users (steam_id, persona_name, avatar, profile_url, role)
+            VALUES (?, ?, ?, ?, ?)`,
+              [steam_id, profile.persona_name, profile.avatar, profile.profile_url, 'user']
+          );
+          await upsertUserProfile(conn, steam_id, profile);
+          conn.release();
+        }
+      } catch (err) {
+        console.error("Could not fetch/store Steam profile:", err);
+      }
+
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return next(err);
+        }
+        console.log("✅ Session saved, redirecting");
+        res.redirect(base);
+      });
+    });
+  });
   // --- API: Verify Login ---
   app.get('/api/me', requireSteamID, async (req, res) => {
     const steam_id = req.steam_id;
