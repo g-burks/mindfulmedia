@@ -24,9 +24,8 @@ import path   from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config({path: resolve(__dirname, ".env")});
-}
+dotenv.config({path: resolve(__dirname, ".env")});
+
 
 const {
   STEAM_API_KEY,
@@ -50,7 +49,8 @@ async function startServer() {
   }
 
   // 3) Express setup
-  const BASE_URL = process.env.BACKEND_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || `http://localhost${PORT}`;
+  const isProd = process.env.NODE_ENV === 'production';
+  const BASE_URL = isProd ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
   console.log("→ BASE_URL:", BASE_URL);
 
   const app = express();
@@ -59,11 +59,6 @@ async function startServer() {
 
   const allowedOrigins = [
     'https://mindfulmedia.vercel.app',
-    'https://mindfulmedia-umber.vercel.app',
-    'https://mindfulmedia-dm83.vercel.app',
-    'https://mindfulmedia-dm83-git-cookiesurg-brody-michaels-projects.vercel.app',
-    'https://mindfulmedia-dm83-od3hzia0e-brody-michaels-projects.vercel.app',
-    'https://mindfulmedia-dm83-brody-michaels-projects.vercel.app',
     /^https:\/\/mindfulmedia-[^.]+\.vercel\.app$/,
   ];
   app.use(cors({
@@ -162,7 +157,7 @@ async function startServer() {
               return next(err);
             }
             console.log("✅ Session saved, redirecting");
-            const REDIR_URL = process.env.STEAM_REDIRECT || process.env.FRONTEND_URL || BASE_URL;
+            const REDIR_URL = BASE_URL;
             res.redirect(REDIR_URL);
           });
         });
