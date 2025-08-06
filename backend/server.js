@@ -50,7 +50,9 @@ async function startServer() {
   }
 
   // 3) Express setup
-  const BASE_URL = process.env.PUBLIC_URL;
+  const BASE_URL = process.env.PUBLIC_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || "http://localhost:5000";
+  console.log("→ BASE_URL:", BASE_URL);
+
   const app = express();
 
   app.set('trust proxy', 1);
@@ -98,7 +100,6 @@ async function startServer() {
           secure: process.env.NODE_ENV === 'production',
           httpOnly: true,
           sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-          // domain: process.env.NODE_ENV === 'production' ? SESSION_COOKIE_DOMAIN : undefined,
         }
       })
   );
