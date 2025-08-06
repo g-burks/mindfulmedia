@@ -19,7 +19,7 @@ function App() {
   useEffect(() => {
     axios
       .get(apiRoutes.getUser, { withCredentials: true })
-      .then(res => setUser(res.data))
+      .then(res => setUser(console.log("️ ;) Logged in user:", res.data)))
       .catch(() => setUser(null))
       .finally(() => setChecked(true));
   }, []);

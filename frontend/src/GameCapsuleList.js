@@ -39,7 +39,6 @@ const GameCapsuleList = ({ searchQuery }) => {
       })
       .catch((err) => {
         console.error("Failed to fetch games", err);
-        setError("Unable to load games.");
         setLoading(false);
       });
   }, []);
