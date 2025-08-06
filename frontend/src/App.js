@@ -27,8 +27,9 @@ function App() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    axios
-      .get(apiRoutes.getTestConnection)
+    axios.get(apiRoutes.getTestConnection, { withCredentials: true })
+        .then(res => console.log("test ok"))
+        .catch(console.error);
   }, []);
 
   //this is a test for autodeploying using vercel

@@ -30,7 +30,6 @@ const GameCapsuleList = ({ searchQuery }) => {
   // Fetch owned games
   useEffect(() => {
     setLoading(true);
-    setError(null);
 
     axios
       .get(apiRoutes.getGames, {withCredentials: true})
@@ -40,7 +39,6 @@ const GameCapsuleList = ({ searchQuery }) => {
       })
       .catch((err) => {
         console.error("Failed to fetch games", err);
-        setError("Failed to fetch games");
         setLoading(false);
       });
   }, []);
