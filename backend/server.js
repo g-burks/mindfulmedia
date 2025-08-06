@@ -278,6 +278,7 @@ async function startServer() {
 
         // fetch & upsert
         const gameData = await getGameData(appid);
+        console.log("Game data for", appid, gameData);
         if (gameData) {
           await upsertGame(conn, gameData);
         }
