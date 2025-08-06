@@ -50,7 +50,7 @@ async function startServer() {
   }
 
   // 3) Express setup
-  const BASE_URL = process.env.PUBLIC_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || "http://localhost:5000";
+  const BASE_URL = process.env.BACKEND_URL || (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) || `http://localhost${PORT}`;
   console.log("→ BASE_URL:", BASE_URL);
 
   const app = express();
@@ -165,7 +165,7 @@ async function startServer() {
               return next(err);
             }
             console.log("✅ Session saved, redirecting");
-            const REDIR_URL = process.env.STEAM_REDIRECT || BASE_URL;
+            const REDIR_URL = process.env.STEAM_REDIRECT || process.env.FRONTEND_URL || BASE_URL;
             res.redirect(REDIR_URL);
           });
         });
