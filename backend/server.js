@@ -144,10 +144,6 @@ async function startServer() {
     })(req, res, next);
 
     }, (req, res, next) => {
-    const proto = req.protocol;
-    const host  = req.get("host");
-    const base  = `${proto}://${host}`;
-
     const steam_id = req.user?.id;
     if (!steam_id) return res.redirect("/login/error");
 
@@ -187,6 +183,9 @@ async function startServer() {
           console.error("Session save error:", err);
           return next(err);
         }
+        const proto = req.protocol;
+        const host  = req.get("host");
+        const base  = `${proto}://${host}`;
         console.log("✅ Session saved, redirecting");
         res.redirect(base);
       });
